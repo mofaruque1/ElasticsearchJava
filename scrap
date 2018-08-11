@@ -1,0 +1,89 @@
+package com.omor_rci.elastic_search_example;
+
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.cache.query.IndexQueryCache;
+
+import com.google.gson.Gson;
+
+public class CSVReader {
+	
+	// The config parameters for the connection
+	private static final String HOST = "localhost";
+	private static final int PORT_ONE = 9200;
+	private static final int PORT_TWO = 9201;
+	private static final String SCHEME = "http";
+	private static RestHighLevelClient restHighLevelClient;
+	
+	
+	
+
+	public static void main(String[] args) {
+		
+		List<Map<String, Object>> list = new ArrayList<Map<String,Object>>();
+		
+		String csvFile = "/Users/mdomor.faruque/Tools/data/GOOG.csv";
+		BufferedReader bReader = null;
+		String line = "";
+		String csvSplitBy = ",";
+		String[] columnName;
+		String indx = "{\"index\":{}}";
+
+		try {
+			bReader = new BufferedReader(new FileReader(csvFile));
+			columnName = bReader.readLine().split(csvSplitBy);
+			while ((line = bReader.readLine()) != null) {
+				
+				Map<String, Object> obj = new HashMap<String, Object>();
+
+				String[] lineWords = line.split(csvSplitBy);
+				
+				for(int i=0;i<lineWords.length;i++) {
+					obj.put(columnName[i], lineWords[i]);
+				}
+				list.add(obj);
+	
+			}
+
+			StringBuilder data = new StringBuilder();
+			Gson gson = new Gson();
+			
+	
+			for(int i=0;i<list.size();i++) {
+				String json = gson.toJson(list.get(i));
+				data.append(indx);
+				data.append("\n");
+				data.append(json);
+				data.append("\n");
+
+			}
+			System.out.println(data.toString());
+	
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (bReader != null) {
+				try {
+					bReader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+	}
+
+}
